@@ -1,6 +1,6 @@
 {
   "name": "redux",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Predictable state container for JavaScript apps",
   "main": "lib/index.js",
   "jsnext:main": "src/index.js",
@@ -60,6 +60,7 @@
     "eslint-plugin-react": "^3.2.3",
     "expect": "^1.8.0",
     "gitbook-cli": "^0.3.4",
+    "gitbook-plugin-prism": "^0.1.1",
     "isparta": "^3.0.3",
     "mocha": "^2.2.5",
     "rimraf": "^2.3.4",
