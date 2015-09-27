@@ -83,6 +83,11 @@ function mapStateToProps(state, ownProps) {
   const stargazersPagination = stargazersByRepo[fullName] || { ids: [] };
   const stargazers = stargazersPagination.ids.map(id => users[id]);
 
+  console.log('ーーーーーーーーーーーーーーーーーーーーーー');
+  console.log(repos);
+  console.log(login);
+  console.log(name);
+
   return {
     fullName,
     name,

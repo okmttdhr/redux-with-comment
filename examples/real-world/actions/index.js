@@ -1,3 +1,11 @@
+// 以下を呼んでる。
+// export const CALL_API = Symbol('Call API');
+// export const Schemas = {
+//   USER: userSchema,
+//   USER_ARRAY: arrayOf(userSchema),
+//   REPO: repoSchema,
+//   REPO_ARRAY: arrayOf(repoSchema)
+// };
 import { CALL_API, Schemas } from '../middleware/api';
 
 export const USER_REQUEST = 'USER_REQUEST';

@@ -27,6 +27,9 @@ function errorMessage(state = null, action) {
 
 // Updates the pagination data for different actions.
 const pagination = combineReducers({
+
+  // ユーザーページを訪れるとpushされる。
+  // #todo おそらく、どのユーザーのstarをpagenationするかを判別するため。
   starredByUser: paginate({
     mapActionToKey: action => action.login,
     types: [
@@ -35,6 +38,9 @@ const pagination = combineReducers({
       ActionTypes.STARRED_FAILURE
     ]
   }),
+
+  // リポジトリページを訪れるとpushされる。
+  // #todo なんだろうこれ。
   stargazersByRepo: paginate({
     mapActionToKey: action => action.fullName,
     types: [
@@ -43,6 +49,7 @@ const pagination = combineReducers({
       ActionTypes.STARGAZERS_FAILURE
     ]
   })
+
 });
 
 const rootReducer = combineReducers({

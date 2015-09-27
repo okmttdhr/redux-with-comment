@@ -1,5 +1,16 @@
 import { Schema, arrayOf, normalize } from 'normalizr';
+
+// 以下の様な仕組み。
+// Converting object keys
+// var object = {
+//   attr_one: "foo",
+//   attr_two: "bar"
+// };
+// object = humps.camelizeKeys(object);
+// object.attrOne === "foo"; // true
+// object.attrTwo === "bar"; // true
 import { camelizeKeys } from 'humps';
+
 import 'isomorphic-fetch';
 
 // Extracts the next page URL from Github API response.
@@ -22,12 +33,18 @@ const API_ROOT = 'https://api.github.com/';
 // Fetches an API response and normalizes the result JSON according to schema.
 // This makes every API response have the same shape, regardless of how nested it was.
 function callApi(endpoint, schema) {
+
+  // API_ROOT がなければ、たしてやる
   const fullUrl = (endpoint.indexOf(API_ROOT) === -1) ? API_ROOT + endpoint : endpoint;
 
   return fetch(fullUrl)
     .then(response =>
+
       response.json().then(json => ({ json, response }))
+
+    // json と通常の response がはいっている
     ).then(({ json, response }) => {
+
       if (!response.ok) {
         return Promise.reject(json);
       }
@@ -36,8 +53,14 @@ function callApi(endpoint, schema) {
       const nextPageUrl = getNextPageUrl(response) || undefined;
 
       return Object.assign({},
+
+        // なんか綺麗に整形してるだけで、
+        // 正体は、単なる、APIで呼んだレスポンス。
         normalize(camelizedJson, schema),
+
+        // 次頁のリンクをresponseをいじって取得しているだけ
         { nextPageUrl }
+
       );
     });
 }
@@ -107,6 +130,8 @@ export default store => next => action => {
     return finalAction;
   }
 
+  // USER_REQUEST, USER_SUCCESS, USER_FAILURE などがはいるが、
+  // 汎用的に使えるようにしている
   const [requestType, successType, failureType] = types;
   next(actionWith({ type: requestType }));
 

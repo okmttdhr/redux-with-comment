@@ -48,13 +48,20 @@ export default function paginate({ types, mapActionToKey }) {
     case requestType:
     case successType:
     case failureType:
+
+      // login(ユーザー名)かfullName(リポジトリの名前)が渡ってくる
       const key = mapActionToKey(action);
+
+      // ただのバリデーション
       if (typeof key !== 'string') {
         throw new Error('Expected key to be a string.');
       }
+
+
       return merge({}, state, {
         [key]: updatePagination(state[key], action)
       });
+
     default:
       return state;
     }
