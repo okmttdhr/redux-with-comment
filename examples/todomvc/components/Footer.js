@@ -37,7 +37,7 @@ class Footer extends Component {
 
     return (
       <a className={classnames({ selected: filter === selectedFilter })}
-         style={{ cursor: 'hand' }}
+         style={{ cursor: 'pointer' }}
          // propsの onShow(= this.handleShow.bind(this)) が実行される
          onClick={() => onShow(filter)}>
         {title}

@@ -275,17 +275,17 @@ In this code, there are two interesting parts:
 
 * We use ES6 computed property syntax so we can update `state[action.reddit]` with `Object.assign()` in a terse way. This:
 
-    ```js
-    return Object.assign({}, state, {
-      [action.reddit]: posts(state[action.reddit], action)
-    });
-    ```
+  ```js
+  return Object.assign({}, state, {
+    [action.reddit]: posts(state[action.reddit], action)
+  });
+  ```
   is equivalent to this:
 
   ```js
-    let nextState = {};
-    nextState[action.reddit] = posts(state[action.reddit], action);
-    return Object.assign({}, state, nextState);
+  let nextState = {};
+  nextState[action.reddit] = posts(state[action.reddit], action);
+  return Object.assign({}, state, nextState);
   ```
 * We extracted `posts(state, action)` that manages the state of a specific post list. This is just [reducer composition](../basics/Reducers.md#splitting-reducers)! It is our choice how to split the reducer into smaller reducers, and in this case, we’re delegating updating items inside an object to a `posts` reducer. The [real world example](../introduction/Examples.html#real-world) goes even further, showing how to create a reducer factory for parameterized pagination reducers.
 
@@ -293,9 +293,9 @@ Remember that reducers are just functions, so you can use functional composition
 
 ## Async Action Creators
 
-Finally, how do we use the synchronous action creators we [defined earlier](#synchronous-action-creators) together with network requests? The standard way to do it with Redux is to use the [Redux Thunk middleware](https://github.com/gaearon/redux-thunk). It comes in a separate package called `redux-thunk`. We’ll explain how middleware works in general [later](Middleware.md); for now, there is just one important thing you need to know: by using this specific middleware, an action creator can return a function instead an action object. This way, the function creator becomes a [thunk](https://en.wikipedia.org/wiki/Thunk).
+Finally, how do we use the synchronous action creators we [defined earlier](#synchronous-action-creators) together with network requests? The standard way to do it with Redux is to use the [Redux Thunk middleware](https://github.com/gaearon/redux-thunk). It comes in a separate package called `redux-thunk`. We’ll explain how middleware works in general [later](Middleware.md); for now, there is just one important thing you need to know: by using this specific middleware, an action creator can return a function instead an action object. This way, the action creator becomes a [thunk](https://en.wikipedia.org/wiki/Thunk).
 
-When a function creator returns a function, that function will get executed by the Redux Thunk middleware. This function doesn’t need to be pure; it is thus allowed to have side effects, including executing asynchronous API calls. The function can also dispatch actions—like those synchronous actions we defined earlier.
+When an action creator returns a function, that function will get executed by the Redux Thunk middleware. This function doesn’t need to be pure; it is thus allowed to have side effects, including executing asynchronous API calls. The function can also dispatch actions—like those synchronous actions we defined earlier.
 
 We can still define these special thunk action creators inside our `actions.js` file:
 
@@ -355,7 +355,7 @@ export function fetchPosts(reddit) {
         dispatch(receivePosts(reddit, json))
       );
 
-      // Note: in a real world app, you also want to
+      // In a real world app, you also want to
       // catch any error in the network call.
   };
 }
@@ -390,15 +390,11 @@ import { createStore, applyMiddleware } from 'redux';
 import { selectReddit, fetchPosts } from './actions';
 import rootReducer from './reducers';
 
-const logger = createLogger({
-  level: 'info',
-  collapsed: true,
-  predicate (getState, action) => action.type
-});
+const loggerMiddleware = createLogger();
 
 const createStoreWithMiddleware = applyMiddleware(
   thunkMiddleware, // lets us dispatch() functions
-  logger // neat middleware that logs actions
+  loggerMiddleware // neat middleware that logs actions
 )(createStore);
 
 const store = createStoreWithMiddleware(rootReducer);

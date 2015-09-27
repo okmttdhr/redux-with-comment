@@ -1,6 +1,6 @@
 import expect from 'expect';
 import { combineReducers } from '../../src';
-import { ActionTypes } from '../../src/createStore';
+import createStore, { ActionTypes } from '../../src/createStore';
 
 describe('Utils', () => {
   describe('combineReducers', () => {
@@ -66,8 +66,8 @@ describe('Utils', () => {
       );
     });
 
-    it('should throw an error if a reducer returns undefined initializing', () => {
-      expect(() => combineReducers({
+    it('should throw an error on first call if a reducer returns undefined initializing', () => {
+      const reducer = combineReducers({
         counter(state, action) {
           switch (action.type) {
           case 'increment':
@@ -78,8 +78,20 @@ describe('Utils', () => {
             return state;
           }
         }
-      })).toThrow(
+      });
+      expect(() => reducer({})).toThrow(
         /"counter".*initialization/
+      );
+    });
+
+    it('should catch error thrown in reducer when initializing and re-throw', () => {
+      const reducer = combineReducers({
+        throwingReducer() {
+          throw new Error('Error thrown in reducer');
+        }
+      });
+      expect(() => reducer({})).toThrow(
+        /Error thrown in reducer/
       );
     });
 
@@ -100,8 +112,8 @@ describe('Utils', () => {
       expect(reducer({counter: 0}, { type: increment }).counter).toEqual(1);
     });
 
-    it('should throw an error if a reducer attempts to handle a private action', () => {
-      expect(() => combineReducers({
+    it('should throw an error on first call if a reducer attempts to handle a private action', () => {
+      const reducer = combineReducers({
         counter(state, action) {
           switch (action.type) {
           case 'increment':
@@ -115,7 +127,8 @@ describe('Utils', () => {
             return undefined;
           }
         }
-      })).toThrow(
+      });
+      expect(() => reducer()).toThrow(
         /"counter".*private/
       );
     });
@@ -130,61 +143,55 @@ describe('Utils', () => {
       spy.restore();
     });
 
-    it('should warn if initial state object does not match state object returned by reducer', () => {
+    it('should warn if input state object does not match state object returned by reducer', () => {
       const spy = expect.spyOn(console, 'error');
-      const reducerCreator = () => {
-        return combineReducers({
-          foo(state = {bar: 1}) {
-            return state;
-          },
-          baz(state = {qux: 3}) {
-            return state;
-          }
-        });
-      };
+      const reducer = combineReducers({
+        foo(state = {bar: 1}) {
+          return state;
+        },
+        baz(state = {qux: 3}) {
+          return state;
+        }
+      });
 
-      reducerCreator()({foo: {bar: 2}});
+      reducer({foo: {bar: 2}});
       expect(spy.calls.length).toBe(0);
 
-      reducerCreator()({
+      reducer({
         foo: {bar: 2},
         baz: {qux: 4}
       });
       expect(spy.calls.length).toBe(0);
 
-      reducerCreator()({bar: 2});
+      createStore(reducer, {bar: 2});
       expect(spy.calls[0].arguments[0]).toMatch(
-        /Unexpected key "bar".*instead: "foo", "baz"/
+        /Unexpected key "bar".*createStore.*instead: "foo", "baz"/
       );
 
-      reducerCreator()({bar: 2, qux: 4});
+      createStore(reducer, {bar: 2, qux: 4});
       expect(spy.calls[1].arguments[0]).toMatch(
-        /Unexpected keys "bar", "qux".*instead: "foo", "baz"/
+        /Unexpected keys "bar", "qux".*createStore.*instead: "foo", "baz"/
       );
 
-      reducerCreator()(1);
+      createStore(reducer, 1);
       expect(spy.calls[2].arguments[0]).toMatch(
-        /unexpected type of "Number".*keys: "foo", "baz"/
+        /createStore has unexpected type of "Number".*keys: "foo", "baz"/
       );
 
-      spy.restore();
-    });
-
-    it('should only check state shape on init', () => {
-      const spy = expect.spyOn(console, 'error');
-      const reducer = combineReducers({
-        foo(state = {bar: 1}) {
-          return state;
-        }
-      });
-
-      reducer({bar: 1});
-      expect(spy.calls[0].arguments[0]).toMatch(
-        /Unexpected key "bar".*instead: "foo"/
+      reducer({bar: 2});
+      expect(spy.calls[3].arguments[0]).toMatch(
+        /Unexpected key "bar".*reducer.*instead: "foo", "baz"/
       );
 
-      reducer({bar: 1});
-      expect(spy.calls.length).toBe(1);
+      reducer({bar: 2, qux: 4});
+      expect(spy.calls[4].arguments[0]).toMatch(
+        /Unexpected keys "bar", "qux".*reducer.*instead: "foo", "baz"/
+      );
+
+      reducer(1);
+      expect(spy.calls[5].arguments[0]).toMatch(
+        /reducer has unexpected type of "Number".*keys: "foo", "baz"/
+      );
 
       spy.restore();
     });
