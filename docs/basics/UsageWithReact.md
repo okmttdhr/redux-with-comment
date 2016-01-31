@@ -14,18 +14,18 @@ We will use React to build our simple todo app.
 npm install --save react-redux
 ```
 
-## Smart and Dumb Components
+## Container and Presentational Components
 
-React bindings for Redux embrace the idea of [separating “smart” and “dumb” components](https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0).
+React bindings for Redux embrace the idea of [separating container and presentational components](https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0).
 
-It is advisable that only top-level components of your app (such as route handlers) are aware of Redux. Components below them should be “dumb” and receive all data via props.
+It is advisable that only top-level components of your app (such as route handlers) are aware of Redux. Components below them should be presentational and receive all data via props.
 
 <table>
     <thead>
         <tr>
             <th></th>
-            <th scope="col" style="text-align:left">“Smart” Components</th>
-            <th scope="col" style="text-align:left">“Dumb” Components</th>
+            <th scope="col" style="text-align:left">Container Components</th>
+            <th scope="col" style="text-align:left">Presentational Components</th>
         </tr>
     </thead>
     <tbody>
@@ -52,7 +52,7 @@ It is advisable that only top-level components of your app (such as route handle
     </tbody>
 </table>
 
-In this todo app, we will only have a single “smart” component at the top of our view hierarchy. In more complex apps, you might have several of them. While you may nest “smart” components, we suggest that you pass props down whenever possible.
+In this todo app, we will only have a single container component at the top of our view hierarchy. In more complex apps, you might have several of them. While you may nest container components, we suggest that you pass props down whenever possible.
 
 ## Designing Component Hierarchy
 
@@ -75,20 +75,20 @@ I see the following components (and their props) emerge from this brief:
   - `filter: string` is the current filter: `'SHOW_ALL'`, `'SHOW_COMPLETED'` or `'SHOW_ACTIVE'`.
   - `onFilterChange(nextFilter: string)`: Callback to invoke when user chooses a different filter.
 
-These are all “dumb” components. They don’t know *where* the data comes from, or *how* to change it. They only render what’s given to them.
+These are all presentational components. They don’t know *where* the data comes from, or *how* to change it. They only render what’s given to them.
 
 If you migrate from Redux to something else, you’ll be able to keep all these components exactly the same. They have no dependency on Redux.
 
 Let’s write them! We don’t need to think about binding to Redux yet. You can just give them fake data while you experiment until they render correctly.
 
-## Dumb Components
+## Presentational Components
 
 These are all normal React components, so we won’t stop to examine them in detail. Here they go:
 
 #### `components/AddTodo.js`
 
 ```js
-import React, { findDOMNode, Component, PropTypes } from 'react';
+import React, { Component, PropTypes } from 'react'
 
 export default class AddTodo extends Component {
   render() {
@@ -99,26 +99,26 @@ export default class AddTodo extends Component {
           Add
         </button>
       </div>
-    );
+    )
   }
 
   handleClick(e) {
-    const node = findDOMNode(this.refs.input);
-    const text = node.value.trim();
-    this.props.onAddClick(text);
-    node.value = '';
+    const node = this.refs.input
+    const text = node.value.trim()
+    this.props.onAddClick(text)
+    node.value = ''
   }
 }
 
 AddTodo.propTypes = {
   onAddClick: PropTypes.func.isRequired
-};
+}
 ```
 
 #### `components/Todo.js`
 
 ```js
-import React, { Component, PropTypes } from 'react';
+import React, { Component, PropTypes } from 'react'
 
 export default class Todo extends Component {
   render() {
@@ -131,7 +131,7 @@ export default class Todo extends Component {
         }}>
         {this.props.text}
       </li>
-    );
+    )
   }
 }
 
@@ -139,14 +139,14 @@ Todo.propTypes = {
   onClick: PropTypes.func.isRequired,
   text: PropTypes.string.isRequired,
   completed: PropTypes.bool.isRequired
-};
+}
 ```
 
 #### `components/TodoList.js`
 
 ```js
-import React, { Component, PropTypes } from 'react';
-import Todo from './Todo';
+import React, { Component, PropTypes } from 'react'
+import Todo from './Todo'
 
 export default class TodoList extends Component {
   render() {
@@ -158,7 +158,7 @@ export default class TodoList extends Component {
                 onClick={() => this.props.onTodoClick(index)} />
         )}
       </ul>
-    );
+    )
   }
 }
 
@@ -168,28 +168,28 @@ TodoList.propTypes = {
     text: PropTypes.string.isRequired,
     completed: PropTypes.bool.isRequired
   }).isRequired).isRequired
-};
+}
 ```
 
 #### `components/Footer.js`
 
 ```js
-import React, { Component, PropTypes } from 'react';
+import React, { Component, PropTypes } from 'react'
 
 export default class Footer extends Component {
   renderFilter(filter, name) {
     if (filter === this.props.filter) {
-      return name;
+      return name
     }
 
     return (
       <a href='#' onClick={e => {
-        e.preventDefault();
-        this.props.onFilterChange(filter);
+        e.preventDefault()
+        this.props.onFilterChange(filter)
       }}>
         {name}
       </a>
-    );
+    )
   }
 
   render() {
@@ -204,7 +204,7 @@ export default class Footer extends Component {
         {this.renderFilter('SHOW_ACTIVE', 'Active')}
         .
       </p>
-    );
+    )
   }
 }
 
@@ -215,7 +215,7 @@ Footer.propTypes = {
     'SHOW_COMPLETED',
     'SHOW_ACTIVE'
   ]).isRequired
-};
+}
 ```
 
 That’s it! We can verify that they work correctly by writing a dummy `App` to render them:
@@ -223,10 +223,10 @@ That’s it! We can verify that they work correctly by writing a dummy `App` to 
 #### `containers/App.js`
 
 ```js
-import React, { Component } from 'react';
-import AddTodo from '../components/AddTodo';
-import TodoList from '../components/TodoList';
-import Footer from '../components/Footer';
+import React, { Component } from 'react'
+import AddTodo from '../components/AddTodo'
+import TodoList from '../components/TodoList'
+import Footer from '../components/Footer'
 
 export default class App extends Component {
   render() {
@@ -237,15 +237,20 @@ export default class App extends Component {
             console.log('add todo', text)
           } />
         <TodoList
-          todos={[{
-            text: 'Use Redux',
-            completed: true
-          }, {
-            text: 'Learn to connect it to React',
-            completed: false
-          }]}
-          onTodoClick={todo =>
-            console.log('todo clicked', todo)
+          todos={
+            [
+              {
+                text: 'Use Redux',
+                completed: true
+              },
+              {
+                text: 'Learn to connect it to React',
+                completed: false
+              }
+            ]
+          }
+          onTodoClick={index =>
+            console.log('todo clicked', index)
           } />
         <Footer
           filter='SHOW_ALL'
@@ -253,7 +258,7 @@ export default class App extends Component {
             console.log('filter change', filter)
           } />
       </div>
-    );
+    )
   }
 }
 ```
@@ -273,47 +278,46 @@ First, we need to import `Provider` from [`react-redux`](http://github.com/gaear
 #### `index.js`
 
 ```js
-import React from 'react';
-import { createStore } from 'redux';
-import { Provider } from 'react-redux';
-import App from './containers/App';
-import todoApp from './reducers';
+import React from 'react'
+import { render } from 'react-dom'
+import { createStore } from 'redux'
+import { Provider } from 'react-redux'
+import App from './containers/App'
+import todoApp from './reducers'
 
-let store = createStore(todoApp);
+let store = createStore(todoApp)
 
-let rootElement = document.getElementById('root');
-React.render(
-  // The child must be wrapped in a function
-  // to work around an issue in React 0.13.
+let rootElement = document.getElementById('root')
+render(
   <Provider store={store}>
-    {() => <App />}
+    <App />
   </Provider>,
   rootElement
-);
+)
 ```
 
-This makes our store instance available to the components below. (Internally, this is done via React's [undocumented “context” feature](http://www.youtube.com/watch?v=H7vlH-wntD4), but it’s not exposed directly in the API so don’t worry about it.)
+This makes our store instance available to the components below. (Internally, this is done via React’s [“context” feature](http://facebook.github.io/react/docs/context.html).)
 
 Then, we **wrap the components we want to connect to Redux with the `connect()` function from [`react-redux`](http://github.com/gaearon/react-redux)**. Try to only do this for a top-level component, or route handlers. While technically you can `connect()` any component in your app to Redux store, avoid doing this too deeply, because it will make the data flow harder to trace.
 
-**Any component wrapped with `connect()` call will receive a [`dispatch`](../api/Store.md#dispatch) function as a prop, and any state it needs from the global state.** The only argument to `connect()` is a function we call a **selector**. This function takes the global Redux store’s state, and returns the props you need for the component. In the simplest case, you can just return the `state` given to you, but you may also wish to transform it first.
+**Any component wrapped with `connect()` call will receive a [`dispatch`](../api/Store.md#dispatch) function as a prop, and any state it needs from the global state.** In most cases you will only pass the first argument to `connect()`, which is a function we call a **selector**. This function takes the global Redux store’s state, and returns the props you need for the component. In the simplest case, you can just return the `state` given to you (i.e. pass identity function), but you may also wish to transform it first.
 
 To make performant memoized transformations with composable selectors, check out [reselect](https://github.com/faassen/reselect). In this example, we won’t use it, but it works great for larger apps.
 
 #### `containers/App.js`
 
 ```js
-import React, { Component, PropTypes } from 'react';
-import { connect } from 'react-redux';
-import { addTodo, completeTodo, setVisibilityFilter, VisibilityFilters } from '../actions';
-import AddTodo from '../components/AddTodo';
-import TodoList from '../components/TodoList';
-import Footer from '../components/Footer';
+import React, { Component, PropTypes } from 'react'
+import { connect } from 'react-redux'
+import { addTodo, completeTodo, setVisibilityFilter, VisibilityFilters } from '../actions'
+import AddTodo from '../components/AddTodo'
+import TodoList from '../components/TodoList'
+import Footer from '../components/Footer'
 
 class App extends Component {
   render() {
     // Injected by connect() call:
-    const { dispatch, visibleTodos, visibilityFilter } = this.props;
+    const { dispatch, visibleTodos, visibilityFilter } = this.props
     return (
       <div>
         <AddTodo
@@ -331,7 +335,7 @@ class App extends Component {
             dispatch(setVisibilityFilter(nextFilter))
           } />
       </div>
-    );
+    )
   }
 }
 
@@ -339,22 +343,22 @@ App.propTypes = {
   visibleTodos: PropTypes.arrayOf(PropTypes.shape({
     text: PropTypes.string.isRequired,
     completed: PropTypes.bool.isRequired
-  })),
+  }).isRequired).isRequired,
   visibilityFilter: PropTypes.oneOf([
     'SHOW_ALL',
     'SHOW_COMPLETED',
     'SHOW_ACTIVE'
   ]).isRequired
-};
+}
 
 function selectTodos(todos, filter) {
   switch (filter) {
-  case VisibilityFilters.SHOW_ALL:
-    return todos;
-  case VisibilityFilters.SHOW_COMPLETED:
-    return todos.filter(todo => todo.completed);
-  case VisibilityFilters.SHOW_ACTIVE:
-    return todos.filter(todo => !todo.completed);
+    case VisibilityFilters.SHOW_ALL:
+      return todos
+    case VisibilityFilters.SHOW_COMPLETED:
+      return todos.filter(todo => todo.completed)
+    case VisibilityFilters.SHOW_ACTIVE:
+      return todos.filter(todo => !todo.completed)
   }
 }
 
@@ -364,11 +368,11 @@ function select(state) {
   return {
     visibleTodos: selectTodos(state.todos, state.visibilityFilter),
     visibilityFilter: state.visibilityFilter
-  };
+  }
 }
 
 // Wrap the component to inject dispatch and state into it
-export default connect(select)(App);
+export default connect(select)(App)
 ```
 
 That’s it! The tiny todo app now functions correctly.

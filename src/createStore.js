@@ -1,4 +1,4 @@
-import isPlainObject from './utils/isPlainObject';
+import isPlainObject from './utils/isPlainObject'
 
 /**
  * These are private action types reserved by Redux.
@@ -8,7 +8,7 @@ import isPlainObject from './utils/isPlainObject';
  */
 export var ActionTypes = {
   INIT: '@@redux/INIT'
-};
+}
 
 /**
  * Creates a Redux store that holds the state tree.
@@ -27,18 +27,36 @@ export var ActionTypes = {
  * If you use `combineReducers` to produce the root reducer function, this must be
  * an object with the same shape as `combineReducers` keys.
  *
+ * @param {Function} enhancer The store enhancer. You may optionally specify it
+ * to enhance the store with third-party capabilities such as middleware,
+ * time travel, persistence, etc. The only store enhancer that ships with Redux
+ * is `applyMiddleware()`.
+ *
  * @returns {Store} A Redux store that lets you read the state, dispatch actions
  * and subscribe to changes.
  */
-export default function createStore(reducer, initialState) {
-  if (typeof reducer !== 'function') {
-    throw new Error('Expected the reducer to be a function.');
+export default function createStore(reducer, initialState, enhancer) {
+  if (typeof initialState === 'function' && typeof enhancer === 'undefined') {
+    enhancer = initialState
+    initialState = undefined
   }
 
-  var currentReducer = reducer;
-  var currentState = initialState;
-  var listeners = [];
-  var isDispatching = false;
+  if (typeof enhancer !== 'undefined') {
+    if (typeof enhancer !== 'function') {
+      throw new Error('Expected the enhancer to be a function.')
+    }
+
+    return enhancer(createStore)(reducer, initialState)
+  }
+
+  if (typeof reducer !== 'function') {
+    throw new Error('Expected the reducer to be a function.')
+  }
+
+  var currentReducer = reducer
+  var currentState = initialState
+  var listeners = []
+  var isDispatching = false
 
   /**
    * Reads the state tree managed by the store.
@@ -46,24 +64,37 @@ export default function createStore(reducer, initialState) {
    * @returns {any} The current state tree of your application.
    */
   function getState() {
-    return currentState;
+    return currentState
   }
 
   /**
    * Adds a change listener. It will be called any time an action is dispatched,
    * and some part of the state tree may potentially have changed. You may then
    * call `getState()` to read the current state tree inside the callback.
+   * Note, the listener should not expect to see all states changes, as the
+   * state might have been updated multiple times before the listener is
+   * notified.
    *
    * @param {Function} listener A callback to be invoked on every dispatch.
    * @returns {Function} A function to remove this change listener.
    */
   function subscribe(listener) {
-    listeners.push(listener);
+    if (typeof listener !== 'function') {
+      throw new Error('Expected listener to be a function.')
+    }
+
+    listeners.push(listener)
+    var isSubscribed = true
 
     return function unsubscribe() {
-      var index = listeners.indexOf(listener);
-      listeners.splice(index, 1);
-    };
+      if (!isSubscribed) {
+        return
+      }
+
+      isSubscribed = false
+      var index = listeners.indexOf(listener)
+      listeners.splice(index, 1)
+    }
   }
 
   /**
@@ -96,29 +127,29 @@ export default function createStore(reducer, initialState) {
       throw new Error(
         'Actions must be plain objects. ' +
         'Use custom middleware for async actions.'
-      );
+      )
     }
 
     if (typeof action.type === 'undefined') {
       throw new Error(
         'Actions may not have an undefined "type" property. ' +
         'Have you misspelled a constant?'
-      );
+      )
     }
 
     if (isDispatching) {
-      throw new Error('Reducers may not dispatch actions.');
+      throw new Error('Reducers may not dispatch actions.')
     }
 
     try {
-      isDispatching = true;
-      currentState = currentReducer(currentState, action);
+      isDispatching = true
+      currentState = currentReducer(currentState, action)
     } finally {
-      isDispatching = false;
+      isDispatching = false
     }
 
-    listeners.slice().forEach(listener => listener());
-    return action;
+    listeners.slice().forEach(listener => listener())
+    return action
   }
 
   /**
@@ -132,19 +163,23 @@ export default function createStore(reducer, initialState) {
    * @returns {void}
    */
   function replaceReducer(nextReducer) {
-    currentReducer = nextReducer;
-    dispatch({ type: ActionTypes.INIT });
+    if (typeof nextReducer !== 'function') {
+      throw new Error('Expected the nextReducer to be a function.')
+    }
+
+    currentReducer = nextReducer
+    dispatch({ type: ActionTypes.INIT })
   }
 
   // When a store is created, an "INIT" action is dispatched so that every
   // reducer returns their initial state. This effectively populates
   // the initial state tree.
-  dispatch({ type: ActionTypes.INIT });
+  dispatch({ type: ActionTypes.INIT })
 
   return {
     dispatch,
     subscribe,
     getState,
     replaceReducer
-  };
+  }
 }

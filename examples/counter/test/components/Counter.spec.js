@@ -1,57 +1,60 @@
-import expect from 'expect';
-import jsdomReact from '../jsdomReact';
-import React from 'react/addons';
-import Counter from '../../components/Counter';
+import expect from 'expect'
+import React from 'react'
+import TestUtils from 'react-addons-test-utils'
+import Counter from '../../components/Counter'
 
-const { TestUtils } = React.addons;
-
-function setup() {
+function setup(value = 0) {
   const actions = {
-    increment: expect.createSpy(),
-    incrementIfOdd: expect.createSpy(),
-    incrementAsync: expect.createSpy(),
-    decrement: expect.createSpy()
-  };
-  const component = TestUtils.renderIntoDocument(<Counter counter={1} {...actions} />);
+    onIncrement: expect.createSpy(),
+    onDecrement: expect.createSpy()
+  }
+  const component = TestUtils.renderIntoDocument(
+    <Counter value={value} {...actions} />
+  )
   return {
     component: component,
     actions: actions,
-    buttons: TestUtils.scryRenderedDOMComponentsWithTag(component, 'button').map(button => {
-      return button.getDOMNode();
-    }),
-    p: TestUtils.findRenderedDOMComponentWithTag(component, 'p').getDOMNode()
-  };
+    buttons: TestUtils.scryRenderedDOMComponentsWithTag(component, 'button'),
+    p: TestUtils.findRenderedDOMComponentWithTag(component, 'p')
+  }
 }
 
 describe('Counter component', () => {
-  jsdomReact();
-
   it('should display count', () => {
-    const { p } = setup();
-    expect(p.textContent).toMatch(/^Clicked: 1 times/);
-  });
+    const { p } = setup()
+    expect(p.textContent).toMatch(/^Clicked: 0 times/)
+  })
 
-  it('first button should call increment', () => {
-    const { buttons, actions } = setup();
-    TestUtils.Simulate.click(buttons[0]);
-    expect(actions.increment).toHaveBeenCalled();
-  });
+  it('first button should call onIncrement', () => {
+    const { buttons, actions } = setup()
+    TestUtils.Simulate.click(buttons[0])
+    expect(actions.onIncrement).toHaveBeenCalled()
+  })
 
-  it('second button should call decrement', () => {
-    const { buttons, actions } = setup();
-    TestUtils.Simulate.click(buttons[1]);
-    expect(actions.decrement).toHaveBeenCalled();
-  });
+  it('second button should call onDecrement', () => {
+    const { buttons, actions } = setup()
+    TestUtils.Simulate.click(buttons[1])
+    expect(actions.onDecrement).toHaveBeenCalled()
+  })
 
-  it('third button should call incrementIfOdd', () => {
-    const { buttons, actions } = setup();
-    TestUtils.Simulate.click(buttons[2]);
-    expect(actions.incrementIfOdd).toHaveBeenCalled();
-  });
+  it('third button should not call onIncrement if the counter is even', () => {
+    const { buttons, actions } = setup(42)
+    TestUtils.Simulate.click(buttons[2])
+    expect(actions.onIncrement).toNotHaveBeenCalled()
+  })
 
-  it('fourth button should call incrementAsync', () => {
-    const { buttons, actions } = setup();
-    TestUtils.Simulate.click(buttons[3]);
-    expect(actions.incrementAsync).toHaveBeenCalled();
-  });
-});
+  it('third button should call onIncrement if the counter is odd', () => {
+    const { buttons, actions } = setup(43)
+    TestUtils.Simulate.click(buttons[2])
+    expect(actions.onIncrement).toHaveBeenCalled()
+  })
+
+  it('fourth button should call onIncrement in a second', (done) => {
+    const { buttons, actions } = setup()
+    TestUtils.Simulate.click(buttons[3])
+    setTimeout(() => {
+      expect(actions.onIncrement).toHaveBeenCalled()
+      done()
+    }, 1000)
+  })
+})

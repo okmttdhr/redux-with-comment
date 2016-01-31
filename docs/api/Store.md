@@ -47,7 +47,7 @@ The store’s reducing function will be called with the current [`getState()`](#
 
 #### Returns
 
-(Object<sup>†</sup>): The dispatched action.
+(Object<sup>†</sup>): The dispatched action (see notes).
 
 #### Notes
 
@@ -62,18 +62,18 @@ To learn how to describe asynchronous API calls, read the current state inside a
 #### Example
 
 ```js
-import { createStore } from 'redux';
-let store = createStore(todos, ['Use Redux']);
+import { createStore } from 'redux'
+let store = createStore(todos, [ 'Use Redux' ])
 
 function addTodo(text) {
   return {
     type: 'ADD_TODO',
     text
-  };
+  }
 }
 
-store.dispatch(addTodo('Read the docs'));
-store.dispatch(addTodo('Read about the middleware'));
+store.dispatch(addTodo('Read the docs'))
+store.dispatch(addTodo('Read about the middleware'))
 ```
 
 <hr>
@@ -81,6 +81,12 @@ store.dispatch(addTodo('Read about the middleware'));
 ### <a id='subscribe'></a>[`subscribe(listener)`](#subscribe)
 
 Adds a change listener. It will be called any time an action is dispatched, and some part of the state tree may potentially have changed. You may then call [`getState()`](#getState) to read the current state tree inside the callback.
+
+You may call [`dispatch()`](#dispatch) from a change listener, with the following caveats:
+
+1. Both subscription and unsubscription will take effect after the outermost [`dispatch()`](#dispatch) call on the stack exits. This means that if you subscribe or unsubscribe while listeners are being invoked, the changes to the subscriptions will take effect only after the outermost [`dispatch()`](#dispatch) exits.
+
+2. The listener should not expect to see all states changes, as the state might have been updated multiple times during a nested [`dispatch()`](#dispatch) before the listener is called. It is, however, guaranteed that all subscribers registered by the time the outermost [`dispatch()`](#dispatch) started will be called with the latest state by the time the outermost [`dispatch()`](#dispatch) exits.
 
 It is a low-level API. Most likely, instead of using it directly, you’ll use React (or other) bindings. If you feel that the callback needs to be invoked with the current state, you might want to [convert the store to an Observable or write a custom `observeStore` utility instead](https://github.com/rackt/redux/issues/303#issuecomment-125184409).
 
@@ -98,21 +104,21 @@ To unsubscribe the change listener, invoke the function returned by `subscribe`.
 
 ```js
 function select(state) {
-  return state.some.deep.property;
+  return state.some.deep.property
 }
 
-let currentValue;
+let currentValue
 function handleChange() {
-  let previousValue = currentValue;
-  currentValue = select(store.getState());
+  let previousValue = currentValue
+  currentValue = select(store.getState())
   
   if (previousValue !== currentValue) {
-    console.log('Some deep nested property changed from', previousValue, 'to', currentValue);
+    console.log('Some deep nested property changed from', previousValue, 'to', currentValue)
   }
 }
 
-let unsubscribe = store.subscribe(handleChange);
-handleChange();
+let unsubscribe = store.subscribe(handleChange)
+handleChange()
 ```
 
 <hr>

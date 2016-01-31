@@ -5,6 +5,19 @@ Redux is distributed with a few examples in its [source code](https://github.com
 >##### Note on Copying
 >If you copy Redux examples outside their folders, you can delete some lines at the end of their `webpack.config.js` files. They follow a “You can safely delete these lines in your project.” comment.
 
+## Counter Vanilla
+
+Run the [Counter Vanilla](https://github.com/rackt/redux/tree/master/examples/counter-vanilla) example:
+
+```
+git clone https://github.com/rackt/redux.git
+
+cd redux/examples/counter-vanilla
+open index.html
+```
+
+It does not require a build system or a view framework and exists to show the raw Redux API used with ES5.
+
 ## Counter
 
 Run the [Counter](https://github.com/rackt/redux/tree/master/examples/counter) example:
@@ -125,6 +138,56 @@ It covers:
 * Caching responses and showing a spinner while data is fetching
 * Pagination
 * Routing
+
+## Shopping Cart
+
+Run the [Shopping Cart](https://github.com/rackt/redux/tree/master/examples/shopping-cart) example:
+
+```
+git clone https://github.com/rackt/redux.git
+
+cd redux/examples/shopping-cart
+npm install
+npm start
+
+open http://localhost:3000/
+```
+
+This is an example of idiomatic Redux development patterns.
+
+It covers:
+
+* Normalized state
+* Explicit entity ID tracking
+* Reducer composition
+* Queries defined alongside reducers
+* Example of rollback on failure
+* Safe conditional action dispatching
+* Using only [React Redux](https://github.com/rackt/react-redux) to bind action creators 
+* Conditional middleware (logging example)
+
+## Tree View
+
+Run the [Tree View](https://github.com/rackt/redux/tree/master/examples/tree-view) example:
+
+```
+git clone https://github.com/rackt/redux.git
+
+cd redux/examples/tree-view
+npm install
+npm start
+
+open http://localhost:3000/
+```
+
+This is an example of performant rendering.
+
+It covers:
+
+* Normalized state
+* Reducer composition
+* State representing a tree view
+* Granular re-rendering of a large subtree
 
 ## More Examples
 

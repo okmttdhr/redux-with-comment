@@ -10,12 +10,12 @@ The data lifecycle in any Redux app follows these 4 steps:
 
 1. **You call** [`store.dispatch(action)`](../api/Store.md#dispatch).
 
-  An action is a plain object describing *what happened*. For example:
+  An [action](Actions.md) is a plain object describing *what happened*. For example:
 
     ```js
-    { type: 'LIKE_ARTICLE', articleId: 42 };
-    { type: 'FETCH_USER_SUCCESS', response: { id: 3, name: 'Megan' } };
-    { type: 'ADD_TODO', text: 'Read the Redux docs.'};
+    { type: 'LIKE_ARTICLE', articleId: 42 }
+    { type: 'FETCH_USER_SUCCESS', response: { id: 3, name: 'Mary' } }
+    { type: 'ADD_TODO', text: 'Read the Redux docs.' }
     ```
 
   Think of an action as a very brief snippet of news. “Mary liked article 42.” or “‘Read the Redux docs.’ was added to the list of todos.”
@@ -24,26 +24,28 @@ The data lifecycle in any Redux app follows these 4 steps:
 
 2. **The Redux store calls the reducer function you gave it.**
 
-  The store will pass two arguments to the reducer, the current state tree and the action. For example, in the todo app, the root reducer might receive something like this:
+  The [store](Store.md) will pass two arguments to the [reducer](Reducers.md): the current state tree and the action. For example, in the todo app, the root reducer might receive something like this:
 
     ```js
     // The current application state (list of todos and chosen filter)
     let previousState = {
       visibleTodoFilter: 'SHOW_ALL',
-      todos: [{
-        text: 'Read the docs.',
-        complete: false
-      }]
-    };
+      todos: [ 
+        {
+          text: 'Read the docs.',
+          complete: false
+        }
+      ]
+    }
 
     // The action being performed (adding a todo)
     let action = {
       type: 'ADD_TODO',
       text: 'Understand the flow.'
-    };
+    }
 
     // Your reducer returns the next application state
-    let nextState = todoApp(previousState, action);
+    let nextState = todoApp(previousState, action)
     ```
 
     Note that a reducer is a pure function. It only *computes* the next state. It should be completely predictable: calling it with the same inputs many times should produce the same outputs. It shouldn’t perform any side effects like API calls or router transitions. These should happen before an action is dispatched.
@@ -57,25 +59,25 @@ The data lifecycle in any Redux app follows these 4 steps:
     ```js
     function todos(state = [], action) {
       // Somehow calculate it...
-      return nextState;
+      return nextState
     }
 
     function visibleTodoFilter(state = 'SHOW_ALL', action) {
       // Somehow calculate it...
-      return nextState;
+      return nextState
     }
 
     let todoApp = combineReducers({
       todos,
       visibleTodoFilter
-    });
+    })
     ```
 
   When you emit an action, `todoApp` returned by `combineReducers` will call both reducers:
 
     ```js
-    let nextTodos = todos(state.todos, action);
-    let nextVisibleTodoFilter = visibleTodoFilter(state.visibleTodoFilter, action);
+    let nextTodos = todos(state.todos, action)
+    let nextVisibleTodoFilter = visibleTodoFilter(state.visibleTodoFilter, action)
     ```
 
   It will then combine both sets of results into a single state tree:
@@ -84,7 +86,7 @@ The data lifecycle in any Redux app follows these 4 steps:
     return {
       todos: nextTodos,
       visibleTodoFilter: nextVisibleTodoFilter
-    };
+    }
     ```
 
   While [`combineReducers()`](../api/combineReducers.md) is a handy helper utility, you don’t have to use it; feel free to write your own root reducer!

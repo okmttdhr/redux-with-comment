@@ -7,23 +7,22 @@ This is the complete source code of the tiny todo app we built during the [basic
 #### `index.js`
 
 ```js
-import React from 'react';
-import { createStore } from 'redux';
-import { Provider } from 'react-redux';
-import App from './containers/App';
-import todoApp from './reducers';
+import React from 'react'
+import { render } from 'react-dom'
+import { createStore } from 'redux'
+import { Provider } from 'react-redux'
+import App from './containers/App'
+import todoApp from './reducers'
 
-let store = createStore(todoApp);
+let store = createStore(todoApp)
 
-let rootElement = document.getElementById('root');
-React.render(
-  // The child must be wrapped in a function
-  // to work around an issue in React 0.13.
+let rootElement = document.getElementById('root')
+render(
   <Provider store={store}>
-    {() => <App />}
+    <App />
   </Provider>,
   rootElement
-);
+)
 ```
 
 ## Action Creators and Constants
@@ -35,9 +34,9 @@ React.render(
  * action types
  */
 
-export const ADD_TODO = 'ADD_TODO';
-export const COMPLETE_TODO = 'COMPLETE_TODO';
-export const SET_VISIBILITY_FILTER = 'SET_VISIBILITY_FILTER';
+export const ADD_TODO = 'ADD_TODO'
+export const COMPLETE_TODO = 'COMPLETE_TODO'
+export const SET_VISIBILITY_FILTER = 'SET_VISIBILITY_FILTER'
 
 /*
  * other constants
@@ -47,22 +46,28 @@ export const VisibilityFilters = {
   SHOW_ALL: 'SHOW_ALL',
   SHOW_COMPLETED: 'SHOW_COMPLETED',
   SHOW_ACTIVE: 'SHOW_ACTIVE'
-};
+}
 
 /*
  * action creators
  */
 
+let nextTodoId = 0;
+
 export function addTodo(text) {
-  return { type: ADD_TODO, text };
+  return {
+    type: ADD_TODO,
+    id: nextTodoId++,
+    text
+  };
 }
 
-export function completeTodo(index) {
-  return { type: COMPLETE_TODO, index };
+export function completeTodo(id) {
+  return { type: COMPLETE_TODO, id }
 }
 
 export function setVisibilityFilter(filter) {
-  return { type: SET_VISIBILITY_FILTER, filter };
+  return { type: SET_VISIBILITY_FILTER, filter }
 }
 ```
 
@@ -71,63 +76,81 @@ export function setVisibilityFilter(filter) {
 #### `reducers.js`
 
 ```js
-import { combineReducers } from 'redux';
-import { ADD_TODO, COMPLETE_TODO, SET_VISIBILITY_FILTER, VisibilityFilters } from './actions';
-const { SHOW_ALL } = VisibilityFilters;
+import { combineReducers } from 'redux'
+import { ADD_TODO, COMPLETE_TODO, SET_VISIBILITY_FILTER, VisibilityFilters } from './actions'
+const { SHOW_ALL } = VisibilityFilters
 
 function visibilityFilter(state = SHOW_ALL, action) {
   switch (action.type) {
-  case SET_VISIBILITY_FILTER:
-    return action.filter;
-  default:
-    return state;
+    case SET_VISIBILITY_FILTER:
+      return action.filter
+    default:
+      return state
+  }
+}
+
+function todo(state, action) {
+  switch (action.type) {
+    case ADD_TODO:
+      return {
+        id: action.id,
+        text: action.text,
+        completed: false
+      }
+    case COMPLETE_TODO:
+      if (state.id !== action.id) {
+        return state
+      }
+
+      return {
+        ...state,
+        completed: true
+      }
+    default:
+      return state
   }
 }
 
 function todos(state = [], action) {
   switch (action.type) {
-  case ADD_TODO:
-    return [...state, {
-      text: action.text,
-      completed: false
-    }];
-  case COMPLETE_TODO:
-    return [
-      ...state.slice(0, action.index),
-      Object.assign({}, state[action.index], {
-        completed: true
-      }),
-      ...state.slice(action.index + 1)
-    ];
-  default:
-    return state;
+    case ADD_TODO:
+      return [
+        ...state,
+        todo(undefined, action)
+      ]
+    case COMPLETE_TODO:
+      return state.map(t =>
+        todo(t, action)
+      )
+    default:
+      return state
   }
 }
 
 const todoApp = combineReducers({
   visibilityFilter,
   todos
-});
+})
 
-export default todoApp;
+export default todoApp
 ```
 
-## Smart Components
+## Container Components
 
 #### `containers/App.js`
 
 ```js
-import React, { Component, PropTypes } from 'react';
-import { connect } from 'react-redux';
-import { addTodo, completeTodo, setVisibilityFilter, VisibilityFilters } from '../actions';
-import AddTodo from '../components/AddTodo';
-import TodoList from '../components/TodoList';
-import Footer from '../components/Footer';
+import React, { Component, PropTypes } from 'react'
+import { connect } from 'react-redux'
+import { addTodo, completeTodo, setVisibilityFilter, VisibilityFilters } from '../actions'
+import AddTodo from '../components/AddTodo'
+import TodoList from '../components/TodoList'
+import Footer from '../components/Footer'
 
 class App extends Component {
   render() {
     // Injected by connect() call:
-    const { dispatch, visibleTodos, visibilityFilter } = this.props;
+    const { dispatch, visibleTodos, visibilityFilter } = this.props
     return (
       <div>
         <AddTodo
@@ -136,8 +159,8 @@ class App extends Component {
           } />
         <TodoList
           todos={visibleTodos}
-          onTodoClick={index =>
-            dispatch(completeTodo(index))
+          onTodoClick={id =>
+            dispatch(completeTodo(id))
           } />
         <Footer
           filter={visibilityFilter}
@@ -145,7 +168,7 @@ class App extends Component {
             dispatch(setVisibilityFilter(nextFilter))
           } />
       </div>
-    );
+    )
   }
 }
 
@@ -153,22 +176,22 @@ App.propTypes = {
   visibleTodos: PropTypes.arrayOf(PropTypes.shape({
     text: PropTypes.string.isRequired,
     completed: PropTypes.bool.isRequired
-  })),
+  }).isRequired).isRequired,
   visibilityFilter: PropTypes.oneOf([
     'SHOW_ALL',
     'SHOW_COMPLETED',
     'SHOW_ACTIVE'
   ]).isRequired
-};
+}
 
 function selectTodos(todos, filter) {
   switch (filter) {
-  case VisibilityFilters.SHOW_ALL:
-    return todos;
-  case VisibilityFilters.SHOW_COMPLETED:
-    return todos.filter(todo => todo.completed);
-  case VisibilityFilters.SHOW_ACTIVE:
-    return todos.filter(todo => !todo.completed);
+    case VisibilityFilters.SHOW_ALL:
+      return todos
+    case VisibilityFilters.SHOW_COMPLETED:
+      return todos.filter(todo => todo.completed)
+    case VisibilityFilters.SHOW_ACTIVE:
+      return todos.filter(todo => !todo.completed)
   }
 }
 
@@ -178,19 +201,19 @@ function select(state) {
   return {
     visibleTodos: selectTodos(state.todos, state.visibilityFilter),
     visibilityFilter: state.visibilityFilter
-  };
+  }
 }
 
 // Wrap the component to inject dispatch and state into it
-export default connect(select)(App);
+export default connect(select)(App)
 ```
 
-## Dumb Components
+## Presentational Components
 
 #### `components/AddTodo.js`
 
 ```js
-import React, { findDOMNode, Component, PropTypes } from 'react';
+import React, { Component, PropTypes } from 'react'
 
 export default class AddTodo extends Component {
   render() {
@@ -201,41 +224,41 @@ export default class AddTodo extends Component {
           Add
         </button>
       </div>
-    );
+    )
   }
 
   handleClick(e) {
-    const node = findDOMNode(this.refs.input);
-    const text = node.value.trim();
-    this.props.onAddClick(text);
-    node.value = '';
+    const node = this.refs.input
+    const text = node.value.trim()
+    this.props.onAddClick(text)
+    node.value = ''
   }
 }
 
 AddTodo.propTypes = {
   onAddClick: PropTypes.func.isRequired
-};
+}
 ```
 
 #### `components/Footer.js`
 
 ```js
-import React, { Component, PropTypes } from 'react';
+import React, { Component, PropTypes } from 'react'
 
 export default class Footer extends Component {
   renderFilter(filter, name) {
     if (filter === this.props.filter) {
-      return name;
+      return name
     }
 
     return (
       <a href='#' onClick={e => {
-        e.preventDefault();
-        this.props.onFilterChange(filter);
+        e.preventDefault()
+        this.props.onFilterChange(filter)
       }}>
         {name}
       </a>
-    );
+    )
   }
 
   render() {
@@ -250,7 +273,7 @@ export default class Footer extends Component {
         {this.renderFilter('SHOW_ACTIVE', 'Active')}
         .
       </p>
-    );
+    )
   }
 }
 
@@ -261,13 +284,13 @@ Footer.propTypes = {
     'SHOW_COMPLETED',
     'SHOW_ACTIVE'
   ]).isRequired
-};
+}
 ```
 
 #### `components/Todo.js`
 
 ```js
-import React, { Component, PropTypes } from 'react';
+import React, { Component, PropTypes } from 'react'
 
 export default class Todo extends Component {
   render() {
@@ -280,7 +303,7 @@ export default class Todo extends Component {
         }}>
         {this.props.text}
       </li>
-    );
+    )
   }
 }
 
@@ -288,26 +311,27 @@ Todo.propTypes = {
   onClick: PropTypes.func.isRequired,
   text: PropTypes.string.isRequired,
   completed: PropTypes.bool.isRequired
-};
+}
 ```
 
 #### `components/TodoList.js`
 
 ```js
-import React, { Component, PropTypes } from 'react';
-import Todo from './Todo';
+import React, { Component, PropTypes } from 'react'
+import Todo from './Todo'
 
 export default class TodoList extends Component {
   render() {
     return (
       <ul>
-        {this.props.todos.map((todo, index) =>
-          <Todo {...todo}
-                key={index}
-                onClick={() => this.props.onTodoClick(index)} />
+        {this.props.todos.map(todo =>
+          <Todo
+            key={todo.id}
+            {...todo}
+            onClick={() => this.props.onTodoClick(todo.id)} />
         )}
       </ul>
-    );
+    )
   }
 }
 
@@ -317,5 +341,5 @@ TodoList.propTypes = {
     text: PropTypes.string.isRequired,
     completed: PropTypes.bool.isRequired
   }).isRequired).isRequired
-};
+}
 ```

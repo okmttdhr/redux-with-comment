@@ -21,9 +21,9 @@ It is a common convention that actions have a constant type that helps reducers 
 In Flux, it is traditionally thought that you would define every action type as a string constant:
 
 ```js
-const ADD_TODO = 'ADD_TODO';
-const REMOVE_TODO = 'REMOVE_TODO';
-const LOAD_ARTICLE = 'LOAD_ARTICLE';
+const ADD_TODO = 'ADD_TODO'
+const REMOVE_TODO = 'REMOVE_TODO'
+const LOAD_ARTICLE = 'LOAD_ARTICLE'
 ```
 
 Why is this beneficial? **It is often claimed that constants are unnecessary, and for small projects, this might be correct.** For larger projects, there are some benefits to defining action types as constants:
@@ -46,7 +46,7 @@ For example, instead of calling `dispatch` with an object literal:
 dispatch({
   type: 'ADD_TODO',
   text: 'Use Redux'
-});
+})
 ```
 
 You might write an action creator in a separate file, and import it from your component:
@@ -58,14 +58,14 @@ export function addTodo(text) {
   return {
     type: 'ADD_TODO',
     text
-  };
+  }
 }
 ```
 
 #### `AddTodo.js`
 
 ```js
-import { addTodo } from './actionCreators';
+import { addTodo } from './actionCreators'
 
 // somewhere in an event handler
 dispatch(addTodo('Use Redux'))
@@ -80,7 +80,7 @@ function addTodoWithoutCheck(text) {
   return {
     type: 'ADD_TODO',
     text
-  };
+  }
 }
 
 export function addTodo(text) {
@@ -89,15 +89,15 @@ export function addTodo(text) {
   return function (dispatch, getState) {
     if (getState().todos.length === 3) {
       // Exit early
-      return;
+      return
     }
 
-    dispatch(addTodoWithoutCheck(text));
+    dispatch(addTodoWithoutCheck(text))
   }
 }
 ```
 
-We just modified how `addTodo` action creator behaves, completely invisible to the calling code. **We don’t have to worry about looking at each place where todos are being added, to make sure they have this check.** Action creators let you decouple additional logic around dispatching an action, from the actual components emitting those actions. It’s very handy when the application is under heavy development, and the requirements change often.
+We just modified how the `addTodo` action creator behaves, completely invisible to the calling code. **We don’t have to worry about looking at each place where todos are being added, to make sure they have this check.** Action creators let you decouple additional logic around dispatching an action, from the actual components emitting those actions. It’s very handy when the application is under heavy development, and the requirements change often.
 
 ### Generating Action Creators
 
@@ -110,7 +110,7 @@ export function addTodo(text) {
   return {
     type: 'ADD_TODO',
     text
-  };
+  }
 }
 
 export function editTodo(id, text) {
@@ -118,14 +118,14 @@ export function editTodo(id, text) {
     type: 'EDIT_TODO',
     id,
     text
-  };
+  }
 }
 
 export function removeTodo(id) {
   return {
     type: 'REMOVE_TODO',
     id
-  };
+  }
 }
 ```
 
@@ -134,27 +134,27 @@ You can always write a function that generates an action creator:
 ```js
 function makeActionCreator(type, ...argNames) {
   return function(...args) {
-    let action = { type };
+    let action = { type }
     argNames.forEach((arg, index) => {
-      action[argNames[index]] = args[index];
-    });
-    return action;
+      action[argNames[index]] = args[index]
+    })
+    return action
   }
 }
 
-const ADD_TODO = 'ADD_TODO';
-const EDIT_TODO = 'EDIT_TODO';
-const REMOVE_TODO = 'REMOVE_TODO';
+const ADD_TODO = 'ADD_TODO'
+const EDIT_TODO = 'EDIT_TODO'
+const REMOVE_TODO = 'REMOVE_TODO'
 
-export const addTodo = makeActionCreator(ADD_TODO, 'todo');
-export const editTodo = makeActionCreator(EDIT_TODO, 'id', 'todo');
-export const removeTodo = makeActionCreator(REMOVE_TODO, 'id');
+export const addTodo = makeActionCreator(ADD_TODO, 'todo')
+export const editTodo = makeActionCreator(EDIT_TODO, 'id', 'todo')
+export const removeTodo = makeActionCreator(REMOVE_TODO, 'id')
 ```
-There are also utility libraries to aid in generating action creators, such as [redux-action-utils](https://github.com/insin/redux-action-utils) and [redux-actions](https://github.com/acdlite/redux-actions). These can help with reducing your boilerplate code and adhering to standards such as [Flux Standard Action (FSA)](https://github.com/acdlite/flux-standard-action). 
+There are also utility libraries to aid in generating action creators, such as [redux-act](https://github.com/pauldijou/redux-act) and [redux-actions](https://github.com/acdlite/redux-actions). These can help reduce boilerplate code and enforce adherence to standards such as [Flux Standard Action (FSA)](https://github.com/acdlite/flux-standard-action).
 
 ## Async Action Creators
 
-[Middleware](../Glossary.html#middleware) lets you inject custom logic that interprets every action object before it is dispatched. Async actions are the most common use case for middleware.
+[Middleware](../Glossary.md#middleware) lets you inject custom logic that interprets every action object before it is dispatched. Async actions are the most common use case for middleware.
 
 Without any middleware, [`dispatch`](../api/Store.md#dispatch) only accepts a plain object, so we have to perform AJAX calls inside our components:
 
@@ -166,7 +166,7 @@ export function loadPostsSuccess(userId, response) {
     type: 'LOAD_POSTS_SUCCESS',
     userId,
     response
-  };
+  }
 }
 
 export function loadPostsFailure(userId, error) {
@@ -174,71 +174,71 @@ export function loadPostsFailure(userId, error) {
     type: 'LOAD_POSTS_FAILURE',
     userId,
     error
-  };
+  }
 }
 
 export function loadPostsRequest(userId) {
   return {
     type: 'LOAD_POSTS_REQUEST',
     userId
-  };
+  }
 }
 ```
 
 #### `UserInfo.js`
 
 ```js
-import { Component } from 'react';
-import { connect } from 'react-redux';
-import { loadPostsRequest, loadPostsSuccess, loadPostsFailure } from './actionCreators';
+import { Component } from 'react'
+import { connect } from 'react-redux'
+import { loadPostsRequest, loadPostsSuccess, loadPostsFailure } from './actionCreators'
 
 class Posts extends Component {
   loadData(userId) {
     // Injected into props by React Redux `connect()` call:
-    let { dispatch, posts } = this.props;
+    let { dispatch, posts } = this.props
 
     if (posts[userId]) {
       // There is cached data! Don't do anything.
-      return;
+      return
     }
 
     // Reducer can react to this action by setting
     // `isFetching` and thus letting us show a spinner.
-    dispatch(loadPostsRequest(userId));
+    dispatch(loadPostsRequest(userId))
 
     // Reducer can react to these actions by filling the `users`.
     fetch(`http://myapi.com/users/${userId}/posts`).then(
       response => dispatch(loadPostsSuccess(userId, response)),
       error => dispatch(loadPostsFailure(userId, error))
-    );
+    )
   }
 
   componentDidMount() {
-    this.loadData(this.props.userId);
+    this.loadData(this.props.userId)
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.userId !== this.props.userId) {
-      this.loadData(nextProps.userId);
+      this.loadData(nextProps.userId)
     }
   }
 
   render() {
     if (this.props.isFetching) {
-      return <p>Loading...</p>;
+      return <p>Loading...</p>
     }
 
     let posts = this.props.posts.map(post =>
       <Post post={post} key={post.id} />
-    );
+    )
 
-    return <div>{posts}</div>;
+    return <div>{posts}</div>
   }
 }
 
 export default connect(state => ({
   posts: state.posts
-}))(Posts);
+}))(Posts)
 ```
 
 However, this quickly gets repetitive because different components request data from the same API endpoints. Moreover, we want to reuse some of this logic (e.g., early exit when there is cached data available) from many components.
@@ -249,7 +249,7 @@ The simplest example of middleware is [redux-thunk](https://github.com/gaearon/r
 
 >##### Note
 
->Thunk middleware is just one example of middleware. Middleware is not about “letting you dispatch functions”: it’s about letting you dispatch anything that the particular middleware you use knows how to handle. Thunk middleware adds a specific behavior when you dispatch functions, but it really depends on the middleware you use.
+>Thunk middleware is just one example of middleware. Middleware is not about “letting you dispatch functions”. It’s about letting you dispatch anything that the particular middleware you use knows how to handle. Thunk middleware adds a specific behavior when you dispatch functions, but it really depends on the middleware you use.
 
 Consider the code above rewritten with [redux-thunk](https://github.com/gaearon/redux-thunk):
 
@@ -259,16 +259,16 @@ Consider the code above rewritten with [redux-thunk](https://github.com/gaearon/
 export function loadPosts(userId) {
   // Interpreted by the thunk middleware:
   return function (dispatch, getState) {
-    let { posts } = getState();
+    let { posts } = getState()
     if (posts[userId]) {
       // There is cached data! Don't do anything.
-      return;
+      return
     }
 
     dispatch({
       type: 'LOAD_POSTS_REQUEST',
       userId
-    });
+    })
 
     // Dispatch vanilla actions asynchronously
     fetch(`http://myapi.com/users/${userId}/posts`).then(
@@ -282,7 +282,7 @@ export function loadPosts(userId) {
         userId,
         error
       })
-    );
+    )
   }
 }
 ```
@@ -290,40 +290,40 @@ export function loadPosts(userId) {
 #### `UserInfo.js`
 
 ```js
-import { Component } from 'react';
-import { connect } from 'react-redux';
-import { loadPosts } from './actionCreators';
+import { Component } from 'react'
+import { connect } from 'react-redux'
+import { loadPosts } from './actionCreators'
 
 class Posts extends Component {
   componentDidMount() {
-    this.props.dispatch(loadPosts(this.props.userId));
+    this.props.dispatch(loadPosts(this.props.userId))
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.userId !== this.props.userId) {
-      this.props.dispatch(loadPosts(nextProps.userId));
+      this.props.dispatch(loadPosts(nextProps.userId))
     }
   }
 
   render() {
     if (this.props.isFetching) {
-      return <p>Loading...</p>;
+      return <p>Loading...</p>
     }
 
     let posts = this.props.posts.map(post =>
       <Post post={post} key={post.id} />
-    );
+    )
 
-    return <div>{posts}</div>;
+    return <div>{posts}</div>
   }
 }
 
 export default connect(state => ({
   posts: state.posts
-}))(Posts);
+}))(Posts)
 ```
 
-This is much less typing! If you’d like, you can still have “vanilla” action creators like `loadPostsSuccess` which you’d use from a “smart” `loadPosts` action creator.
+This is much less typing! If you’d like, you can still have “vanilla” action creators like `loadPostsSuccess` which you’d use from a container `loadPosts` action creator.
 
 **Finally, you can write your own middleware.** Let’s say you want to generalize the pattern above and describe your async action creators like this instead:
 
@@ -333,12 +333,12 @@ export function loadPosts(userId) {
     // Types of actions to emit before and after
     types: ['LOAD_POSTS_REQUEST', 'LOAD_POSTS_SUCCESS', 'LOAD_POSTS_FAILURE'],
     // Check the cache (optional):
-    shouldCallAPI: (state) => !state.users[userId],
+    shouldCallAPI: (state) => !state.posts[userId],
     // Perform the fetching:
     callAPI: () => fetch(`http://myapi.com/users/${userId}/posts`),
     // Arguments to inject in begin/end actions
     payload: { userId }
-  };
+  }
 }
 ```
 
@@ -346,54 +346,52 @@ The middleware that interprets such actions could look like this:
 
 ```js
 function callAPIMiddleware({ dispatch, getState }) {
-  return function (next) {
-    return function (action) {
-      const {
-        types,
-        callAPI,
-        shouldCallAPI = () => true,
-        payload = {}
-      } = action;
+  return next => action => {
+    const {
+      types,
+      callAPI,
+      shouldCallAPI = () => true,
+      payload = {}
+    } = action
 
-      if (!types) {
-        // Normal action: pass it on
-        return next(action);
-      }
+    if (!types) {
+      // Normal action: pass it on
+      return next(action)
+    }
 
-      if (
-        !Array.isArray(types) ||
-        types.length !== 3 ||
-        !types.every(type => typeof type === 'string')
-      ) {
-        throw new Error('Expected an array of three string types.');
-      }
+    if (
+      !Array.isArray(types) ||
+      types.length !== 3 ||
+      !types.every(type => typeof type === 'string')
+    ) {
+      throw new Error('Expected an array of three string types.')
+    }
 
-      if (typeof callAPI !== 'function') {
-        throw new Error('Expected fetch to be a function.');
-      }
+    if (typeof callAPI !== 'function') {
+      throw new Error('Expected fetch to be a function.')
+    }
 
-      if (!shouldCallAPI(getState())) {
-        return;
-      }
+    if (!shouldCallAPI(getState())) {
+      return
+    }
 
-      const [requestType, successType, failureType] = types;
+    const [ requestType, successType, failureType ] = types
 
-      dispatch(Object.assign({}, payload, {
-        type: requestType
-      }));
+    dispatch(Object.assign({}, payload, {
+      type: requestType
+    }))
 
-      return callAPI().then(
-        response => dispatch(Object.assign({}, payload, {
-          response: response,
-          type: successType
-        })),
-        error => dispatch(Object.assign({}, payload, {
-          error: error,
-          type: failureType
-        }))
-      );
-    };
-  };
+    return callAPI().then(
+      response => dispatch(Object.assign({}, payload, {
+        response,
+        type: successType
+      })),
+      error => dispatch(Object.assign({}, payload, {
+        error,
+        type: failureType
+      }))
+    )
+  }
 }
 ```
 
@@ -403,19 +401,19 @@ After passing it once to [`applyMiddleware(...middlewares)`](../api/applyMiddlew
 export function loadPosts(userId) {
   return {
     types: ['LOAD_POSTS_REQUEST', 'LOAD_POSTS_SUCCESS', 'LOAD_POSTS_FAILURE'],
-    shouldCallAPI: (state) => !state.users[userId],
+    shouldCallAPI: (state) => !state.posts[userId],
     callAPI: () => fetch(`http://myapi.com/users/${userId}/posts`),
     payload: { userId }
-  };
+  }
 }
 
 export function loadComments(postId) {
   return {
     types: ['LOAD_COMMENTS_REQUEST', 'LOAD_COMMENTS_SUCCESS', 'LOAD_COMMENTS_FAILURE'],
-    shouldCallAPI: (state) => !state.posts[postId],
+    shouldCallAPI: (state) => !state.comments[postId],
     callAPI: () => fetch(`http://myapi.com/posts/${postId}/comments`),
     payload: { postId }
-  };
+  }
 }
 
 export function addComment(postId, message) {
@@ -430,7 +428,7 @@ export function addComment(postId, message) {
       body: JSON.stringify({ message })
     }),
     payload: { postId, message }
-  };
+  }
 }
 ```
 
@@ -441,22 +439,24 @@ Redux reduces the boilerplate of Flux stores considerably by describing the upda
 Consider this Flux store:
 
 ```js
-let _todos = [];
+let _todos = []
 
-export default const TodoStore = assign({}, EventEmitter.prototype, {
+const TodoStore = Object.assign({}, EventEmitter.prototype, {
   getAll() {
-    return _todos;
+    return _todos
   }
-});
+})
 
 AppDispatcher.register(function (action) {
   switch (action.type) {
-  case ActionTypes.ADD_TODO:
-    let text = action.text.trim();
-    _todos.push(text);
-    TodoStore.emitChange();
+    case ActionTypes.ADD_TODO:
+      let text = action.text.trim()
+      _todos.push(text)
+      TodoStore.emitChange()
   }
-});
+})
+
+export default TodoStore
 ```
 
 With Redux, the same update logic can be described as a reducing function:
@@ -465,10 +465,10 @@ With Redux, the same update logic can be described as a reducing function:
 export function todos(state = [], action) {
   switch (action.type) {
   case ActionTypes.ADD_TODO:
-    let text = action.text.trim();
-    return [...state, text];
+    let text = action.text.trim()
+    return [ ...state, text ]
   default:
-    return state;
+    return state
   }
 }
 ```
@@ -484,8 +484,8 @@ Let’s write a function that lets us express reducers as an object mapping from
 ```js
 export const todos = createReducer([], {
   [ActionTypes.ADD_TODO](state, action) {
-    let text = action.text.trim();
-    return [...state, text];
+    let text = action.text.trim()
+    return [ ...state, text ]
   }
 })
 ```
@@ -496,9 +496,9 @@ We can write the following helper to accomplish this:
 function createReducer(initialState, handlers) {
   return function reducer(state = initialState, action) {
     if (handlers.hasOwnProperty(action.type)) {
-      return handlers[action.type](state, action);
+      return handlers[action.type](state, action)
     } else {
-      return state;
+      return state
     }
   }
 }
